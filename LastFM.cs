@@ -33,12 +33,12 @@ namespace MusicBeePlugin {
 
 		}
 
-		private static readonly WebProxy proxy = new WebProxy() {
+		private static readonly WebProxy Proxy = new WebProxy() {
 			BypassProxyOnLocal = false
 		};
 
-		private static readonly HttpClient http = new HttpClient(new HttpClientHandler() {
-			Proxy = proxy,
+		private static readonly HttpClient Http = new HttpClient(new HttpClientHandler() {
+			Proxy = Proxy,
 			UseProxy = true
 		}) {
 			BaseAddress = new Uri("https://ws.audioscrobbler.com/2.0/")
@@ -54,8 +54,9 @@ namespace MusicBeePlugin {
 			content.Add(new KeyValuePair<string, string>("api_sig", string.Concat(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(content.OrderBy(pair => pair.Key).Aggregate("", (string str, KeyValuePair<string, string> pair) => str + pair.Key + pair.Value) + Secret)).Select(b => b.ToString("X2")))));
 			content.Sort((prev, next) => prev.Key.CompareTo(next.Key));
 
-			proxy.Address = new Uri(Api.Setting_GetWebProxy());
-			string res = await (await http.PostAsync("", new FormUrlEncodedContent(content))).Content.ReadAsStringAsync();
+			string proxy = Api.Setting_GetWebProxy();
+			Proxy.Address = proxy == null ? null : new Uri(proxy);
+			string res = await (await Http.PostAsync("", new FormUrlEncodedContent(content))).Content.ReadAsStringAsync();
 
 			if (res.Contains("status=\"failed\"")) {
 				Match match = new Regex("<error code=\"(\\d+)\">(.+)</error>").Match(res);

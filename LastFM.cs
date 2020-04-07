@@ -10,11 +10,11 @@ using System.Net;
 using static MusicBeePlugin.Plugin;
 
 namespace MusicBeePlugin {
-	
+
 	class LastFM {
 		
 		public class Response {
-			
+
 			public readonly int Code = 0;
 			public readonly string Data = "";
 

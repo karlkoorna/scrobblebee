@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("ScrobleBee")]
-[assembly: AssemblyProduct("ScrobleBee")]
+[assembly: AssemblyTitle("ScrobbleBee")]
+[assembly: AssemblyProduct("ScrobbleBee")]
 [assembly: AssemblyDescription("Customizable scrobbling for MusicBee.")]
 [assembly: AssemblyCopyright("Karl Köörna")]
 

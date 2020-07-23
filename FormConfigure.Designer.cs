@@ -317,13 +317,14 @@
 			// 
 			// LabelNote
 			// 
-			this.LabelNote.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.LabelNote.ForeColor = System.Drawing.Color.Salmon;
-			this.LabelNote.Location = new System.Drawing.Point(1, 390);
+			this.LabelNote.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.LabelNote.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.LabelNote.ForeColor = System.Drawing.Color.Tomato;
+			this.LabelNote.Location = new System.Drawing.Point(0, 389);
 			this.LabelNote.Name = "LabelNote";
-			this.LabelNote.Size = new System.Drawing.Size(500, 21);
+			this.LabelNote.Size = new System.Drawing.Size(500, 25);
 			this.LabelNote.TabIndex = 18;
-			this.LabelNote.Text = "Disable MusicBee\'s built-in scrobbling by excluding your library folder!";
+			this.LabelNote.Text = "Disable MusicBee\'s built-in scrobbling!";
 			this.LabelNote.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// FormConfigure
@@ -331,8 +332,8 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(500, 414);
-			this.Controls.Add(this.LabelNote);
 			this.Controls.Add(this.ButtonSubmit);
+			this.Controls.Add(this.LabelNote);
 			this.Controls.Add(this.LayoutTable);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.MaximizeBox = false;

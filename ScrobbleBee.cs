@@ -8,32 +8,23 @@ namespace MusicBeePlugin {
 		public static MusicBeeApiInterface Api;
 
 		private bool hasScrobbled = false;
-		private DateTime started;
+		private DateTime started = DateTime.MinValue;
 		private int played = 0;
 
-		private string lastTitle;
-		private string lastArtist;
-		private string lastAlbum;
-		private int lastDuration;
-
-		private void TryScrobble(string title, string artist, string album, int duration) {
-			if (hasScrobbled) return;
-
-			played += (int) DateTime.UtcNow.Subtract(started).TotalMilliseconds;
-			if (played < Api.NowPlaying_GetDuration() / 2 && played < 240000) return;
-			hasScrobbled = true;
-			played = 0;
-
-			LastFM.Scrobble(title, artist, album, (duration / 1000).ToString());
-		}
+		private string lastTitle = "";
+		private string lastArtist = "";
+		private string lastAlbum = "";
+		private string lastAlbumArtist = "";
+		private int lastDuration = 0;
 
 		public static PluginInfo Initialise(IntPtr ApiPtr) {
 			Api = new MusicBeeApiInterface();
 			Api.Initialise(ApiPtr);
-			
-			Settings.Load(Path.Combine(Api.Setting_GetPersistentStoragePath(), "ScrobbleBee.ini"));
-			LastFM.Login(Settings.Key, Settings.Secret, Settings.Session);
+			Api.Player_SetScrobbleEnabled(false);
 
+			Settings.Load(Path.Combine(Api.Setting_GetPersistentStoragePath(), "Plugins/MB_ScrobbleBee.ini"));
+			LastFM.Login(Settings.Key, Settings.Secret, Settings.Session);
+			
 			return new PluginInfo {
 				Type = PluginType.General,
 				Name = "ScrobbleBee",
@@ -45,7 +36,7 @@ namespace MusicBeePlugin {
 				PluginInfoVersion = PluginInfoVersion,
 				MinInterfaceVersion = MinInterfaceVersion,
 				MinApiRevision = MinApiRevision,
-				ReceiveNotifications = ReceiveNotificationFlags.PlayerEvents,
+				ReceiveNotifications = ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents,
 				ConfigurationPanelHeight = 0
 			};
 		}
@@ -56,21 +47,28 @@ namespace MusicBeePlugin {
 		}
 
 		public static void Uninstall() {
+			Api.Player_SetScrobbleEnabled(true);
 			Settings.Delete();
 		}
 
 		public void ReceiveNotification(string src, NotificationType type) {
-			if (type != NotificationType.TrackChanged && type != NotificationType.PlayStateChanged) return;
+			if (type == NotificationType.PlayerScrobbleChanged) {
+				if (Api.Player_GetScrobbleEnabled()) Api.Player_SetScrobbleEnabled(false);
+				return;
+			}
 			
-			string title = Api.NowPlaying_GetFileTag(Settings.Title);
-			string artist = Api.NowPlaying_GetFileTag(Settings.Artist);
-			string album = Api.NowPlaying_GetFileTag(Settings.Album);
+			if (type != NotificationType.TrackChanged && type != NotificationType.PlayStateChanged) return;
+
+			string title = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Title", MetaDataType.TrackTitle));
+			string artist = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Artist", MetaDataType.Artist));
+			string album = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Album", MetaDataType.Album));
+			string albumArtist = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-AlbumArtist", MetaDataType.AlbumArtist));
 			int duration = Api.NowPlaying_GetDuration();
 
 			switch (type) {
 				case NotificationType.TrackChanged:
-					TryScrobble(lastTitle, lastArtist, lastAlbum, lastDuration);
-					LastFM.Update(title, artist, album, (duration / 1000).ToString());
+					TryScrobble(lastTitle, lastArtist, lastAlbum, lastAlbumArtist, lastDuration);
+					_ = LastFM.Update(title, artist, album, albumArtist, duration);
 					
 					hasScrobbled = duration < 30000;
 					started = DateTime.UtcNow;
@@ -79,6 +77,7 @@ namespace MusicBeePlugin {
 					lastTitle = title;
 					lastArtist = artist;
 					lastAlbum = album;
+					lastAlbumArtist = albumArtist;
 					lastDuration = duration;
 					break;
 				case NotificationType.PlayStateChanged:
@@ -88,11 +87,23 @@ namespace MusicBeePlugin {
 							break;
 						case PlayState.Paused:
 						case PlayState.Stopped:
-							TryScrobble(title, artist, album, duration);
+							TryScrobble(title, artist, album, albumArtist, duration);
 							break;
 					}
 					break;
 			}
+		}
+
+		private void TryScrobble(string title, string artist, string album, string albumArtist, int duration) {
+			if (hasScrobbled) return;
+			if (duration == -1) return;
+
+			played += (int) DateTime.UtcNow.Subtract(started).TotalMilliseconds;
+			if (played < duration / 2 && played < 240000) return;
+			hasScrobbled = true;
+			played = 0;
+
+			LastFM.Scrobble(title, artist, album, albumArtist, duration);
 		}
 
 	}

@@ -68,7 +68,7 @@ namespace MusicBeePlugin {
 			switch (type) {
 				case NotificationType.TrackChanged:
 					TryScrobble(lastTitle, lastArtist, lastAlbum, lastAlbumArtist, lastDuration);
-					_ = LastFM.Update(title, artist, album, albumArtist, duration);
+					LastFM.Update(title, artist, album, albumArtist, duration);
 					
 					hasScrobbled = duration < 30000;
 					started = DateTime.UtcNow;

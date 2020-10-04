@@ -90,7 +90,7 @@ namespace MusicBeePlugin {
 			Secret = secret;
 		}
 
-		public static async Task Update(string track, string artist, string album, string albumArtist, int duration) {
+		public static void Update(string track, string artist, string album, string albumArtist, int duration) {
 			if (Session != null) _ = Execute("track.updateNowPlaying", new List<Parameter>() {
 				new Parameter("sk", Session),
 				new Parameter("track", track),

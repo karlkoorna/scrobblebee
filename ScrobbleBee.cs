@@ -101,7 +101,6 @@ namespace MusicBeePlugin {
 			played += (int) DateTime.UtcNow.Subtract(started).TotalMilliseconds;
 			if (played < duration / 2 && played < 240000) return;
 			hasScrobbled = true;
-			played = 0;
 
 			LastFM.Scrobble(title, artist, album, albumArtist, duration);
 		}

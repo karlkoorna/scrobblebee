@@ -28,20 +28,20 @@ namespace MusicBeePlugin {
 		}
 
 		private async void ButtonSubmit_Click(object sender, EventArgs e) {
-			LastFM.Response res = await LastFM.Login(TextBoxKey.Text, TextBoxSecret.Text, TextBoxUsername.Text, TextBoxPassword.Text);
+			var res = await LastFm.Login(TextBoxKey.Text, TextBoxSecret.Text, TextBoxUsername.Text, TextBoxPassword.Text);
 			
 			string msg = null;
 			switch (res.Code) {
-				case LastFM.ApiCode.Auth:
+				case LastFm.ApiCode.Auth:
 					msg = "Login failed!";
 					break;
-				case LastFM.ApiCode.Values:
+				case LastFm.ApiCode.Values:
 					msg = "Missing values!";
 					break;
-				case LastFM.ApiCode.Key:
+				case LastFm.ApiCode.Key:
 					msg = "Invalid key!";
 					break;
-				case LastFM.ApiCode.Secret:
+				case LastFm.ApiCode.Secret:
 					msg = "Invalid secret!";
 					break;
 			}

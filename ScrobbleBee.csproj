@@ -74,7 +74,7 @@
     <Compile Include="FormConfigure.Designer.cs">
       <DependentUpon>FormConfigure.cs</DependentUpon>
     </Compile>
-    <Compile Include="LastFM.cs" />
+    <Compile Include="LastFm.cs" />
     <Compile Include="MusicBee.cs" />
     <Compile Include="ScrobbleBee.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

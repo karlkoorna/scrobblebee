@@ -14,7 +14,7 @@ using Parameter = System.Collections.Generic.KeyValuePair<string, string>;
 
 namespace MusicBeePlugin {
 
-	class LastFM {
+	class LastFm {
 
 		public enum ApiCode {
 			Ok = 0,
@@ -58,14 +58,14 @@ namespace MusicBeePlugin {
 			parameters.Add(new Parameter("method", method));
 			parameters.Add(new Parameter("api_key", Key));
 			parameters.Add(new Parameter("api_sig", string.Concat(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(parameters.OrderBy(parameter => parameter.Key).Aggregate("", (string str, KeyValuePair<string, string> parameter) => str + parameter.Key + parameter.Value) + Secret)).Select(hash => hash.ToString("X2")))));
-			parameters.Sort((prev, next) => prev.Key.CompareTo(next.Key));
+			parameters.Sort((prev, next) => string.Compare(prev.Key, next.Key, StringComparison.Ordinal));
 
-			string address = Api.Setting_GetWebProxy();
-			Proxy.Address = address == null ? null : new Uri(address);
-			
-			string res = await (await Http.PostAsync("https://ws.audioscrobbler.com/2.0/", new FormUrlEncodedContent(parameters))).Content.ReadAsStringAsync();
+			var address = Api.Setting_GetWebProxy();
+			if (address != null) Proxy.Address = new Uri(address);
+
+			var res = await (await Http.PostAsync("https://ws.audioscrobbler.com/2.0/", new FormUrlEncodedContent(parameters))).Content.ReadAsStringAsync();
 			if (res.Contains("status=\"failed\"")) {
-				Match match = new Regex("<error code=\"(\\d+)\">(.+)</error>").Match(res);
+				var match = new Regex("<error code=\"(\\d+)\">(.+)</error>").Match(res);
 				return new Response((ApiCode) int.Parse(match.Groups[1].Value), match.Groups[2].Value);
 			}
 
@@ -76,11 +76,11 @@ namespace MusicBeePlugin {
 			Key = key;
 			Secret = secret;
 
-			Response res = await Execute("auth.getMobileSession", new List<Parameter>() {
+			var res = await Execute("auth.getMobileSession", new List<Parameter>() {
 				new Parameter("username", username),
 				new Parameter("password", password)
 			});
-			
+
 			return res.Code == ApiCode.Ok ? new Response(Session = new Regex("<key>(.+?)</key>").Match(res.Data).Groups[1].Value) : res;
 		}
 
@@ -104,7 +104,7 @@ namespace MusicBeePlugin {
 		public static async void Scrobble(string track, string artist, string album, string albumArtist, int duration) {
 			if (Session == null) return;
 
-			Response res = await Execute("track.scrobble", new List<Parameter>() {
+			var res = await Execute("track.scrobble", new List<Parameter>() {
 				new Parameter("sk", Session),
 				new Parameter("track[0]", track),
 				new Parameter("artist[0]", artist),

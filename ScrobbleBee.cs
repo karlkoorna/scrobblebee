@@ -1,10 +1,9 @@
 ﻿using System;
-using System.IO;
 
 namespace MusicBeePlugin {
-	
+
 	public partial class Plugin {
-		
+
 		public static MusicBeeApiInterface Api;
 
 		private bool hasScrobbled = false;
@@ -17,14 +16,14 @@ namespace MusicBeePlugin {
 		private string lastAlbumArtist = "";
 		private int lastDuration = 0;
 
-		public static PluginInfo Initialise(IntPtr ApiPtr) {
+		public static PluginInfo Initialise(IntPtr apiPtr) {
 			Api = new MusicBeeApiInterface();
-			Api.Initialise(ApiPtr);
+			Api.Initialise(apiPtr);
 			Api.Player_SetScrobbleEnabled(false);
 
-			Settings.Load(Path.Combine(Api.Setting_GetPersistentStoragePath(), "Plugins/MB_ScrobbleBee.ini"));
-			LastFM.Login(Settings.Key, Settings.Secret, Settings.Session);
-			
+			Settings.Load();
+			LastFm.Login(Settings.Key, Settings.Secret, Settings.Session);
+
 			return new PluginInfo {
 				Type = PluginType.General,
 				Name = "ScrobbleBee",
@@ -56,19 +55,19 @@ namespace MusicBeePlugin {
 				if (Api.Player_GetScrobbleEnabled()) Api.Player_SetScrobbleEnabled(false);
 				return;
 			}
-			
+
 			if (type != NotificationType.TrackChanged && type != NotificationType.PlayStateChanged) return;
 
-			string title = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Title", MetaDataType.TrackTitle));
-			string artist = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Artist", MetaDataType.Artist));
-			string album = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Album", MetaDataType.Album));
-			string albumArtist = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-AlbumArtist", MetaDataType.AlbumArtist));
-			int duration = Api.NowPlaying_GetDuration();
+			var title = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Title", MetaDataType.TrackTitle));
+			var artist = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Artist", MetaDataType.Artist));
+			var album = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-Album", MetaDataType.Album));
+			var albumArtist = Api.NowPlaying_GetFileTag(Settings.GetTag("ScrobbleBee-AlbumArtist", MetaDataType.AlbumArtist));
+			var duration = Api.NowPlaying_GetDuration();
 
 			switch (type) {
 				case NotificationType.TrackChanged:
 					TryScrobble(lastTitle, lastArtist, lastAlbum, lastAlbumArtist, lastDuration);
-					LastFM.Update(title, artist, album, albumArtist, duration);
+					LastFm.Update(title, artist, album, albumArtist, duration);
 					
 					hasScrobbled = duration < 30000;
 					started = DateTime.UtcNow;
@@ -102,7 +101,7 @@ namespace MusicBeePlugin {
 			if (played < duration / 2 && played < 240000) return;
 			hasScrobbled = true;
 
-			LastFM.Scrobble(title, artist, album, albumArtist, duration);
+			LastFm.Scrobble(title, artist, album, albumArtist, duration);
 		}
 
 	}

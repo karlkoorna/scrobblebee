@@ -4,7 +4,7 @@ namespace MusicBeePlugin {
 
 	public partial class Plugin {
 
-		public static MusicBeeApiInterface Api;
+		internal static MusicBeeApiInterface Api;
 
 		private bool hasScrobbled = false;
 		private DateTime started = DateTime.MinValue;
@@ -16,7 +16,7 @@ namespace MusicBeePlugin {
 		private string lastAlbumArtist = "";
 		private int lastDuration = 0;
 
-		public static PluginInfo Initialise(IntPtr apiPtr) {
+		public PluginInfo Initialise(IntPtr apiPtr) {
 			Api = new MusicBeeApiInterface();
 			Api.Initialise(apiPtr);
 			Api.Player_SetScrobbleEnabled(false);
@@ -40,12 +40,12 @@ namespace MusicBeePlugin {
 			};
 		}
 
-		public static bool Configure(IntPtr panelPtr) {
+		public bool Configure(IntPtr panelPtr) {
 			new FormConfigure().ShowDialog();
 			return true;
 		}
 
-		public static void Uninstall() {
+		public void Uninstall() {
 			Api.Player_SetScrobbleEnabled(true);
 			Settings.Delete();
 		}
@@ -68,7 +68,7 @@ namespace MusicBeePlugin {
 				case NotificationType.TrackChanged:
 					TryScrobble(lastTitle, lastArtist, lastAlbum, lastAlbumArtist, lastDuration);
 					LastFm.Update(title, artist, album, albumArtist, duration);
-					
+
 					hasScrobbled = duration < 30000;
 					started = DateTime.UtcNow;
 					played = 0;
@@ -89,6 +89,7 @@ namespace MusicBeePlugin {
 							TryScrobble(title, artist, album, albumArtist, duration);
 							break;
 					}
+
 					break;
 			}
 		}

@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using System.Net;
 using static MusicBeePlugin.Plugin;
 using System.Windows.Forms;
-
 using Parameter = System.Collections.Generic.KeyValuePair<string, string>;
 
 namespace MusicBeePlugin {
@@ -44,26 +43,27 @@ namespace MusicBeePlugin {
 
 		}
 
-		private static readonly WebProxy Proxy = new WebProxy() { BypassProxyOnLocal = false };
-		private static readonly HttpClient Http = new HttpClient(new HttpClientHandler() {
-			Proxy = Proxy,
+		private static readonly WebProxy proxy = new WebProxy() { BypassProxyOnLocal = false };
+
+		private static readonly HttpClient http = new HttpClient(new HttpClientHandler() {
+			Proxy = proxy,
 			UseProxy = true
 		});
 
-		private static string Key;
-		private static string Secret;
-		private static string Session;
+		private static string key;
+		private static string secret;
+		private static string session;
 
 		private static async Task<Response> Execute(string method, List<Parameter> parameters) {
 			parameters.Add(new Parameter("method", method));
-			parameters.Add(new Parameter("api_key", Key));
-			parameters.Add(new Parameter("api_sig", string.Concat(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(parameters.OrderBy(parameter => parameter.Key).Aggregate("", (string str, KeyValuePair<string, string> parameter) => str + parameter.Key + parameter.Value) + Secret)).Select(hash => hash.ToString("X2")))));
+			parameters.Add(new Parameter("api_key", key));
+			parameters.Add(new Parameter("api_sig", string.Concat(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(parameters.OrderBy(parameter => parameter.Key).Aggregate("", (string str, KeyValuePair<string, string> parameter) => str + parameter.Key + parameter.Value) + secret)).Select(hash => hash.ToString("X2")))));
 			parameters.Sort((prev, next) => string.Compare(prev.Key, next.Key, StringComparison.Ordinal));
 
 			var address = Api.Setting_GetWebProxy();
-			if (address != null) Proxy.Address = new Uri(address);
+			if (address != null) proxy.Address = new Uri(address);
 
-			var res = await (await Http.PostAsync("https://ws.audioscrobbler.com/2.0/", new FormUrlEncodedContent(parameters))).Content.ReadAsStringAsync();
+			var res = await (await http.PostAsync("https://ws.audioscrobbler.com/2.0/", new FormUrlEncodedContent(parameters))).Content.ReadAsStringAsync();
 			if (res.Contains("status=\"failed\"")) {
 				var match = new Regex("<error code=\"(\\d+)\">(.+)</error>").Match(res);
 				return new Response((ApiCode) int.Parse(match.Groups[1].Value), match.Groups[2].Value);
@@ -73,39 +73,40 @@ namespace MusicBeePlugin {
 		}
 
 		public static async Task<Response> Login(string key, string secret, string username, string password) {
-			Key = key;
-			Secret = secret;
+			LastFm.key = key;
+			LastFm.secret = secret;
 
 			var res = await Execute("auth.getMobileSession", new List<Parameter>() {
 				new Parameter("username", username),
 				new Parameter("password", password)
 			});
 
-			return res.Code == ApiCode.Ok ? new Response(Session = new Regex("<key>(.+?)</key>").Match(res.Data).Groups[1].Value) : res;
+			return res.Code == ApiCode.Ok ? new Response(session = new Regex("<key>(.+?)</key>").Match(res.Data).Groups[1].Value) : res;
 		}
 
 		public static void Login(string key, string secret, string session) {
-			Key = key;
-			Session = session;
-			Secret = secret;
+			LastFm.key = key;
+			LastFm.session = session;
+			LastFm.secret = secret;
 		}
 
 		public static void Update(string track, string artist, string album, string albumArtist, int duration) {
-			if (Session != null) _ = Execute("track.updateNowPlaying", new List<Parameter>() {
-				new Parameter("sk", Session),
-				new Parameter("track", track),
-				new Parameter("artist", artist),
-				new Parameter("album", album),
-				new Parameter("album_artist", albumArtist),
-				new Parameter("duration", (duration / 1000).ToString())
-			});
+			if (session != null)
+				_ = Execute("track.updateNowPlaying", new List<Parameter>() {
+					new Parameter("sk", session),
+					new Parameter("track", track),
+					new Parameter("artist", artist),
+					new Parameter("album", album),
+					new Parameter("album_artist", albumArtist),
+					new Parameter("duration", (duration / 1000).ToString())
+				});
 		}
 
 		public static async void Scrobble(string track, string artist, string album, string albumArtist, int duration) {
-			if (Session == null) return;
+			if (session == null) return;
 
 			var res = await Execute("track.scrobble", new List<Parameter>() {
-				new Parameter("sk", Session),
+				new Parameter("sk", session),
 				new Parameter("track[0]", track),
 				new Parameter("artist[0]", artist),
 				new Parameter("album[0]", album),

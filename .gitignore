@@ -1,4 +1,6 @@
-﻿publish/
+﻿.idea/
+.vs/
+
+publish/
 bin/
 obj/
-.vs/

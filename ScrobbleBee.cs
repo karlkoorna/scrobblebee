@@ -89,7 +89,6 @@ namespace MusicBeePlugin {
 							TryScrobble(title, artist, album, albumArtist, duration);
 							break;
 					}
-
 					break;
 			}
 		}

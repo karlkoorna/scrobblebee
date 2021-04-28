@@ -72,7 +72,7 @@ namespace MusicBeePlugin {
 				}
 
 				return new Response(res);
-			} catch (Exception e) {
+			} catch {
 				return new Response(ResponseType.Net);
 			}
 		}

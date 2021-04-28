@@ -11,8 +11,8 @@ namespace MusicBeePlugin {
 		private static readonly MetaDataType[] tags = new MetaDataType[] { MetaDataType.Virtual1, MetaDataType.Virtual2, MetaDataType.Virtual3, MetaDataType.Virtual4, MetaDataType.Virtual5, MetaDataType.Virtual6, MetaDataType.Virtual7, MetaDataType.Virtual8, MetaDataType.Virtual9, MetaDataType.Virtual10, MetaDataType.Virtual11, MetaDataType.Virtual12, MetaDataType.Virtual13, MetaDataType.Virtual14, MetaDataType.Virtual15, MetaDataType.Virtual16, MetaDataType.Virtual17, MetaDataType.Virtual18, MetaDataType.Virtual19, MetaDataType.Virtual20, MetaDataType.Virtual21, MetaDataType.Virtual22, MetaDataType.Virtual23, MetaDataType.Virtual24, MetaDataType.Virtual25 };
 		private static readonly byte[] entropy = Encoding.UTF8.GetBytes("U2Nyb2JibGVCZWU=");
 
-		private static string pathDirectory = "";
-		private static string pathFile = "";
+		private static string pathDirectory;
+		private static string pathFile;
 
 		public static string Key = "";
 		public static string Secret = "";

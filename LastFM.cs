@@ -96,7 +96,7 @@ namespace MusicBeePlugin {
 		}
 
 		public static void Update(string track, string artist, string album, string albumArtist, int duration) {
-			if (session != null)
+			if (session != null) {
 				_ = Execute("track.updateNowPlaying", new List<Parameter>() {
 					new Parameter("sk", session),
 					new Parameter("track", track),
@@ -105,6 +105,7 @@ namespace MusicBeePlugin {
 					new Parameter("album_artist", albumArtist),
 					new Parameter("duration", (duration / 1000).ToString())
 				});
+			}
 		}
 
 		public static async void Scrobble(string track, string artist, string album, string albumArtist, int duration) {

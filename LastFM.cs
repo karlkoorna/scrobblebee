@@ -15,7 +15,8 @@ namespace MusicBeePlugin {
 
 	class LastFm {
 
-		public enum ApiCode {
+		public enum ResponseType {
+			Net = -1,
 			Ok = 0,
 			Auth = 4,
 			Values = 6,
@@ -25,16 +26,16 @@ namespace MusicBeePlugin {
 
 		public class Response {
 
-			public readonly ApiCode Code = 0;
+			public readonly ResponseType Type = 0;
 			public readonly string Data = "";
 
-			public Response(ApiCode code, string data) {
-				Code = code;
+			public Response(ResponseType type, string data) {
+				Type = type;
 				Data = data;
 			}
 
-			public Response(ApiCode code) {
-				Code = code;
+			public Response(ResponseType type) {
+				Type = type;
 			}
 
 			public Response(string data) {
@@ -63,13 +64,17 @@ namespace MusicBeePlugin {
 			var address = Api.Setting_GetWebProxy();
 			if (address != null) proxy.Address = new Uri(address);
 
-			var res = await (await http.PostAsync("https://ws.audioscrobbler.com/2.0/", new FormUrlEncodedContent(parameters))).Content.ReadAsStringAsync();
-			if (res.Contains("status=\"failed\"")) {
-				var match = new Regex("<error code=\"(\\d+)\">(.+)</error>").Match(res);
-				return new Response((ApiCode) int.Parse(match.Groups[1].Value), match.Groups[2].Value);
-			}
+			try {
+				var res = await (await http.PostAsync("https://ws.audioscrobbler.com/2.0/", new FormUrlEncodedContent(parameters))).Content.ReadAsStringAsync();
+				if (res.Contains("status=\"failed\"")) {
+					var match = new Regex("<error code=\"(\\d+)\">(.+)</error>").Match(res);
+					return new Response((ResponseType) int.Parse(match.Groups[1].Value), match.Groups[2].Value);
+				}
 
-			return new Response(res);
+				return new Response(res);
+			} catch (Exception e) {
+				return new Response(ResponseType.Net);
+			}
 		}
 
 		public static async Task<Response> Login(string key, string secret, string username, string password) {
@@ -81,7 +86,7 @@ namespace MusicBeePlugin {
 				new Parameter("password", password)
 			});
 
-			return res.Code == ApiCode.Ok ? new Response(session = new Regex("<key>(.+?)</key>").Match(res.Data).Groups[1].Value) : res;
+			return res.Type == ResponseType.Ok ? new Response(session = new Regex("<key>(.+?)</key>").Match(res.Data).Groups[1].Value) : res;
 		}
 
 		public static void Login(string key, string secret, string session) {
@@ -115,7 +120,7 @@ namespace MusicBeePlugin {
 				new Parameter("timestamp[0]", ((int) DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds).ToString())
 			});
 
-			if (res.Code != ApiCode.Ok) MessageBox.Show("Failed to scrobble!\n(" + res.Data + ")", "ScrobbleBee", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			if (res.Type != ResponseType.Ok) MessageBox.Show("Failed to scrobble!\n(" + res.Data + ")", "ScrobbleBee", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 
 	}

@@ -4,12 +4,12 @@ using System.Windows.Forms;
 using static MusicBeePlugin.Plugin;
 
 namespace MusicBeePlugin {
-	
+
 	partial class FormConfigure : Form {
 
 		public FormConfigure() {
 			InitializeComponent();
-			
+
 			TextBoxKey.Text = Settings.Key;
 			TextBoxSecret.Text = Settings.Secret;
 
@@ -29,23 +29,26 @@ namespace MusicBeePlugin {
 
 		private async void ButtonSubmit_Click(object sender, EventArgs e) {
 			var res = await LastFm.Login(TextBoxKey.Text, TextBoxSecret.Text, TextBoxUsername.Text, TextBoxPassword.Text);
-			
+
 			string msg = null;
-			switch (res.Code) {
-				case LastFm.ApiCode.Auth:
+			switch (res.Type) {
+				case LastFm.ResponseType.Net:
+					msg = "Network error!";
+					break;
+				case LastFm.ResponseType.Auth:
 					msg = "Login failed!";
 					break;
-				case LastFm.ApiCode.Values:
+				case LastFm.ResponseType.Values:
 					msg = "Missing values!";
 					break;
-				case LastFm.ApiCode.Key:
+				case LastFm.ResponseType.Key:
 					msg = "Invalid key!";
 					break;
-				case LastFm.ApiCode.Secret:
+				case LastFm.ResponseType.Secret:
 					msg = "Invalid secret!";
 					break;
 			}
-			
+
 			if (msg != null) {
 				MessageBox.Show(msg, "ScrobbleBee", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
